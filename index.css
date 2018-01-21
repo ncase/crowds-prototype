@@ -1,0 +1,36 @@
+body{
+	margin:0;
+	background: #eee;
+
+	font-size: 19px;
+	font-family: Helvetica, Arial, sans-serif;
+	font-weight: 100;
+}
+iframe{
+	border: 2px solid #ddd;
+	display: block;
+	margin: 0 auto;
+}
+#words{
+	width: 504px;
+	margin: 50px auto 50px auto;
+	line-height: 1.5em;
+}
+.caption{
+	font-weight: bold;
+	text-align: center;
+	font-size: 25px;
+	margin-bottom: 0.5em;
+}
+.bubble{
+	background: url(game/bubble.png);
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    background-size: auto 100%;
+    position: relative;
+    top: 6px;
+}
+.bubble.spiky{
+	background-position: -100% 0;
+}

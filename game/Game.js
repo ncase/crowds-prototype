@@ -16,14 +16,7 @@ FOR MVP PROTOTYPE:
 
 Math.TAU = Math.PI*2;
 
-window.onload = function(){
-	init();
-}
-
 var canvas = document.createElement("canvas");
-canvas.width = canvas.height = 1000;
-canvas.style.width = canvas.style.height = 500;
-canvas.style.border = "1px solid #ccc";
 canvas.style.cursor = "none";
 var ctx = canvas.getContext('2d');
 
@@ -32,41 +25,18 @@ var connections = [];
 var drawing = new Drawing();
 var cursor = new Cursor();
 
-function init(){
-
-	// Add the canvas
-	document.body.appendChild(canvas);
-
-	// Add the PEEPS
-	angle = -Math.TAU*(5.5/12);
-	for(var i=0; i<12; i++){
-		angle += Math.TAU/12;
-		var x = 250 + Math.cos(angle)*200;
-		var y = 250 + Math.sin(angle)*200 + 15;
-		var peep = new Peep({
-			x:x, y:y,
-			drunk:(i<4)
-		});
-		peeps.push(peep);
-	}
-
-	// Update
-	update();
-
-}
-
-var winnerImage = new Image();
-winnerImage.src = "winner.png";
-
 var DRAW_STATE = 0; // 0-nothing | 1-connecting | 2-erasing
 var DRAW_CONNECT_FROM = null;
+var CONNECT_FROM_BUFFER = 20;
+var CONNECT_TO_BUFFER = 20;
+
 function update(){
 
 	// Mouse logic...
 	if(Mouse.justPressed && DRAW_STATE===0){
 		
 		// Clicked on a peep?
-		var peepClicked = _mouseOverPeep(20); // buffer of 20px
+		var peepClicked = _mouseOverPeep(CONNECT_FROM_BUFFER); // buffer of 20px
 		if(peepClicked){
 			DRAW_CONNECT_FROM = peepClicked;
 			DRAW_STATE = 1; // START CONNECTING
@@ -91,7 +61,7 @@ function update(){
 
 		// Connecting peeps, and released on a peep?
 		if(DRAW_STATE==1){
-			var peepReleased = _mouseOverPeep(20); // buffer of 20px
+			var peepReleased = _mouseOverPeep(CONNECT_TO_BUFFER); // buffer of 20px
 			if(peepReleased){ // connect 'em!
 				addConnection(DRAW_CONNECT_FROM, peepReleased);
 				DRAW_CONNECT_FROM = null;
@@ -107,7 +77,7 @@ function update(){
 
 	// Cursor Logic
 	if(DRAW_STATE==0){
-		var peepHovered = _mouseOverPeep(20); // buffer of 20px
+		var peepHovered = _mouseOverPeep(CONNECT_FROM_BUFFER); // buffer of 20px
 		if(peepHovered){
 			cursor.setMode(Cursor.CONNECT);
 		}else{
@@ -131,16 +101,11 @@ function update(){
 	});
 	cursor.update();
 
-	// WINNER? Only if ALL peeps think drinking is in the majority
-	var isWinner = true;
-	peeps.forEach(function(peep){
-		if(!peep.isMajority) isWinner=false;
-	});
-
 	// Draw Logic
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	ctx.save();
 	ctx.scale(2,2);
+	_preUpdate();
 	//ctx.translate(0,100);
 
 		connections.forEach(function(connection){
@@ -151,15 +116,19 @@ function update(){
 			peep.draw(ctx);
 		});
 		cursor.draw(ctx);
-		if(isWinner){
-			ctx.drawImage(winnerImage, 0, 0, 500, 500);
-		}
 
+	_onUpdate();
 	ctx.restore();
 
 	// RAF
 	requestAnimationFrame(update);
 
+}
+function _preUpdate(){
+	// TO IMPLEMENT
+}
+function _onUpdate(){
+	// TO IMPLEMENT
 }
 
 var bubbleImage = new Image();
@@ -174,6 +143,7 @@ function Peep(config){
 	self.x = config.x;
 	self.y = config.y;
 	self.drunk = config.drunk;
+	self.noBubble = config.noBubble;
 
 	// Update:
 	// what % of my friends are drunk?
@@ -183,6 +153,7 @@ function Peep(config){
 	self.faceY = 0;
 	self.faceBlink = 0;
 	self.isMajority = false;
+	var _faceFollow = 0.75+(Math.random()*0.1);
 	self.update = function(){
 
 		// Face position!
@@ -200,8 +171,8 @@ function Peep(config){
 			self.faceX = self.faceX*0.95 + faceVector.x*0.05;
 			self.faceY = self.faceY*0.95 + faceVector.y*0.05;
 		}else{
-			self.faceX = self.faceX*0.8 + faceVector.x*0.2;
-			self.faceY = self.faceY*0.8 + faceVector.y*0.2;
+			self.faceX = self.faceX*_faceFollow + faceVector.x*(1-_faceFollow);
+			self.faceY = self.faceY*_faceFollow + faceVector.y*(1-_faceFollow);
 		}
 
 		// Blink?
@@ -276,19 +247,21 @@ function Peep(config){
 			}
 			if(self.drunk) ctx.rotate(Math.sin(drunkRotateC)*0.1); // DRUNK ROTATE
 			ctx.beginPath();
-			ctx.rect(-7, 5, 14, 2);
+			ctx.rect(-7, 4, 14, 2);
 			ctx.fill();
 		ctx.restore();
 
 		// Say HOW MANY FRIENDS
-		ctx.drawImage(bubbleImage,
-					  self.isMajority?100:0, 0, 100, 100,
-					  -15, -52, 30, 30);
-		var label = self.numDrunkFriends+"/"+self.numFriends;
-		ctx.font = '12px sans-serif';
-		ctx.fillStyle = "rgba(0,0,0,0.5)";
-		ctx.textAlign = "center";
-		ctx.fillText(label, 0, -radius-12);
+		if(!self.noBubble){
+			ctx.drawImage(bubbleImage,
+						  self.isMajority?100:0, 0, 100, 100,
+						  -15, -52, 30, 30);
+			var label = self.numDrunkFriends+"/"+self.numFriends;
+			ctx.font = '12px sans-serif';
+			ctx.fillStyle = "rgba(0,0,0,0.5)";
+			ctx.textAlign = "center";
+			ctx.fillText(label, 0, -radius-12);
+		}
 
 		ctx.restore();
 
@@ -401,7 +374,7 @@ function Drawing(){
 		// Connection
 		if(self.connectFrom){
 			// Over any peeps? Connect to THAT! Else, connect to Mouse
-			var peepHovered = _mouseOverPeep(20); // buffer of 20px
+			var peepHovered = _mouseOverPeep(CONNECT_TO_BUFFER); // buffer of 20px
 			if(peepHovered==self.connectFrom) peepHovered=null; // if same, nah
 			self.connectTo = peepHovered ? peepHovered : Mouse;
 		}
