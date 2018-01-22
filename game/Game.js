@@ -195,8 +195,20 @@ function Peep(config){
 		});
 
 		// Is Majority?
+		var lastIsMajority = self.isMajority;
 		if(self.numFriends>0 && self.numDrunkFriends/self.numFriends>0.5) self.isMajority=true;
 		else self.isMajority=false;
+
+		// Changed majority? POP!
+		if(self.isMajority && !lastIsMajority){
+			bubbleScaleVel = 0.2;
+		}
+		if(!self.isMajority && lastIsMajority){
+			bubbleScaleVel = -0.2;
+		}
+		bubbleScale += bubbleScaleVel;
+		bubbleScaleVel += (1-bubbleScale)*0.03;
+		bubbleScaleVel *= 0.8;
 
 		// Drunk...
 		drunkRotateA += drunkRotateAVel;
@@ -212,6 +224,8 @@ function Peep(config){
 	var drunkRotateBVel = 0.02+Math.random()*0.05;
 	var drunkRotateC = Math.random()*Math.TAU;
 	var drunkRotateCVel = 0.02+Math.random()*0.05;
+	var bubbleScale = 1;
+	var bubbleScaleVel = 0;
 	self.draw = function(ctx){
 
 		ctx.save();
@@ -253,14 +267,16 @@ function Peep(config){
 
 		// Say HOW MANY FRIENDS
 		if(!self.noBubble){
+			ctx.translate(0, -radius-17);
+			ctx.scale(bubbleScale, bubbleScale);
 			ctx.drawImage(bubbleImage,
 						  self.isMajority?100:0, 0, 100, 100,
-						  -15, -52, 30, 30);
+						  -15, -15, 30, 30);
 			var label = self.numDrunkFriends+"/"+self.numFriends;
 			ctx.font = '12px sans-serif';
 			ctx.fillStyle = "rgba(0,0,0,0.5)";
 			ctx.textAlign = "center";
-			ctx.fillText(label, 0, -radius-12);
+			ctx.fillText(label, 0, 5);
 		}
 
 		ctx.restore();

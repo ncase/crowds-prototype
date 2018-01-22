@@ -1,6 +1,6 @@
 body{
 	margin:0;
-	background: #eee;
+	background: #f8f8f8;
 
 	font-size: 19px;
 	font-family: Helvetica, Arial, sans-serif;
@@ -10,6 +10,9 @@ iframe{
 	border: 2px solid #ddd;
 	display: block;
 	margin: 0 auto;
+}
+b{
+	font-weight: bold;
 }
 #words{
 	width: 504px;
