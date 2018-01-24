@@ -481,6 +481,7 @@ function Cursor(){
 
 	// Draw
 	self.draw = function(ctx){
+		if(!self.visible) return; // NAH
 		ctx.save();
 		ctx.translate(Mouse.x, Mouse.y);
 		ctx.rotate(self.rotation);
@@ -497,6 +498,15 @@ function Cursor(){
 		ctx.restore();
 	};
 
+	// HIDE OR SHOW
+	self.visible = true;
+	self.show = function(){
+		self.visible = true;
+	};
+	self.hide = function(){
+		self.visible = false;
+	};
+
 }
 Cursor.NORMAL = 0;
 Cursor.CONNECT = 1;
@@ -511,10 +521,12 @@ var Mouse = {
 	pressed:false
 };
 Mouse.ondown = function(event){
+	cursor.show();
 	Mouse.pressed = true;
 	Mouse.onmove(event);
 };
 Mouse.onmove = function(event){
+	cursor.show();
 	Mouse.x = event.offsetX;
 	Mouse.y = event.offsetY;
 };
@@ -536,6 +548,23 @@ Mouse.update = function(){
 canvas.addEventListener("mousedown", Mouse.ondown);
 canvas.addEventListener("mousemove", Mouse.onmove);
 window.addEventListener("mouseup", Mouse.onup);
+
+// TOUCH.
+function _touchWrapper(callback){
+	return function(event){
+		var _event = {};
+		_event.offsetX = event.changedTouches[0].clientX;
+		_event.offsetY = event.changedTouches[0].clientY;
+		event.preventDefault();
+		callback(_event);
+	};
+}
+canvas.addEventListener("touchstart", _touchWrapper(Mouse.ondown), false);
+canvas.addEventListener("touchmove", _touchWrapper(Mouse.onmove), false);
+document.body.addEventListener("touchend", function(){
+	cursor.hide();
+	Mouse.onup();
+}, false);
 
 
 

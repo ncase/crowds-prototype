@@ -16,8 +16,8 @@ function init(){
 	var angle = -Math.TAU*(5.5/12);
 	for(var i=0; i<12; i++){
 		angle += Math.TAU/12;
-		var x = 250 + Math.cos(angle)*200;
-		var y = 250 + Math.sin(angle)*200 + 15;
+		var x = 250 + Math.cos(angle)*180;
+		var y = 250 + Math.sin(angle)*180 + 15;
 		var peep = new Peep({
 			x:x, y:y,
 			drunk:(i<4)
@@ -39,6 +39,6 @@ function _onUpdate(){
 		if(!peep.isMajority) isWinner=false;
 	});
 	if(isWinner){
-		ctx.drawImage(winnerImage, 0, 0, 500, 500);
+		ctx.drawImage(winnerImage, 20, 20, 460, 460);
 	}
 }
